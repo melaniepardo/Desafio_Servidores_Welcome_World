@@ -1,6 +1,7 @@
 const http = require('http')
 const url = require('url')
 const fs = require('fs')
+const daysAndMonthsChecker = require('./dayandmonthchecker')
 // 1. Se crea un servidor con el método createServer del módulo http que esté disponible en el puerto 8080.
 http
     .createServer(function (req, res) {
@@ -13,9 +14,14 @@ http
         // que crea un archivo usando los parámetros nombre del archivo y contenido ( en rectangulos vacios) de la url.
         // Si se cumple la condición,
         if (req.url.includes('/crear')) {
-            fs.writeFile(nombre, contenido, () => {
-                res.write('Archivo creado con exito!')//6. devuelve un mensaje de éxito al cliente.
-                res.end()
+            fs.writeFile(nombre, `${daysAndMonthsChecker()}\n${contenido}`, (err) => {
+                if (err) {
+                    res.write('Archivo no se pudo crear!')//6. devuelve un mensaje de éxito al cliente.
+                    res.end()
+                } else {
+                    res.write('Archivo creado con exito!')//6. devuelve un mensaje de éxito al cliente.
+                    res.end()
+                }
             })
         }
         // 3. Disponibilizar una ruta para devolver el contenido de un archivo cuyo nombre es
@@ -24,8 +30,13 @@ http
         //obtener el contenido del archivo cuyo nombre debe ser el obtenido por query string. (lee el contenido del archivo)
         if (req.url.includes('/leer')) {
             fs.readFile(nombre, (err, data) => {
-                res.write(data)
-                res.end()
+                if (err){
+                    res.write('El archivo no existe')
+                    res.end()
+                } else {
+                    res.write(data)
+                    res.end()
+                }
             })
         }
         // 4. Disponibilizar una ruta para renombrar un archivo, cuyo nombre y nuevo nombre es
@@ -34,8 +45,13 @@ http
         //fileSystem especificando el nombre del archivo devolviendo en su callback un mensaje de éxito.
         if (req.url.includes('/renombrar')) {
             fs.rename(nombre, nuevoNombre, (err, data) => {
+                if (err) {
+                    res.write(`el archivo ${nombre} no se puede renombrar ya que no existe`)
+                    res.end()
+                } else {
                 res.write(`Archivo ${nombre} fue renombrado por ${nuevoNombre}`) // 6. Devolver un mensaje declarando que fue renombrado
-                res.end()
+                    res.end() // 8. devuelve un mensaje de éxito incluyendo el nombre anterior y el nuevo.
+                }
             })
         }
         // 5. Disponibilizar una ruta para eliminar un archivo, cuyo nombre es declarado en los
@@ -45,7 +61,8 @@ http
         if (req.url.includes('/eliminar')) {
             fs.unlink(nombre, (err, data) => {
                 if (err) {//este if checkea si existe un error
-
+                    res.write(`Archivo ${nombre} no se puede eliminar ya que no existe`) // 6. Devolver un mensaje declarando el éxito
+                    res.end()
                 } else {
                     res.write(`Archivo ${nombre} eliminado con exito`) // 6. Devolver un mensaje declarando el éxito
                     res.end()
@@ -56,16 +73,6 @@ http
     })
     .listen(8080, () => console.log('Escuchando el puerto 8080'))
 
-// 6. Devolver un mensaje declarando el éxito o fracaso de lo solicitado en cada consulta
-// recibida.
-
-// 7. Agrega la fecha actual al comienzo del contenido de cada archivo creado en formato
-// “dd / mm / yyyy”. Considera que si el día o el mes es menor a 10 concatenar un “0” a la
-// izquierda. (Opcional)
-
-
-// 8. En la ruta para renombrar, devuelve un mensaje de éxito incluyendo el nombre
-// anterior del archivo y su nuevo nombre de forma dinámica. (Opcional)
 
 
 // 9. En el mensaje de respuesta de la ruta para eliminar un archivo, devuelve el siguiente
