@@ -6,8 +6,9 @@ http
     .createServer(function (req, res) {
         // Almacena los parámetros de la consulta en una const con el método parse del módulo url y su propiedad query.
         const params = url.parse(req.url, true).query
-        const nombre = params.nombre
+        const nombre = params.archivo
         const contenido = params.contenido
+        const nuevoNombre = params.nuevo_nombre
         //2. Crea una ruta que con el método writeFile del módulo File System
         // que crea un archivo usando los parámetros nombre del archivo y contenido ( en rectangulos vacios) de la url.
         // Si se cumple la condición,
@@ -32,8 +33,8 @@ http
         // Paso 1 Crear ruta “/renombrar” que procese el método rename del módulo
         //fileSystem especificando el nombre del archivo devolviendo en su callback un mensaje de éxito.
         if (req.url.includes('/renombrar')) {
-            fs.rename('Repertorio.txt', nombre, (err, data) => {
-                res.write(`Archivo Repertorio.txt renombrado por ${nombre}`) // 6. Devolver un mensaje declarando que fue renombrado
+            fs.rename(nombre, nuevoNombre, (err, data) => {
+                res.write(`Archivo ${nombre} fue renombrado por ${nuevoNombre}`) // 6. Devolver un mensaje declarando que fue renombrado
                 res.end()
             })
         }
@@ -43,8 +44,13 @@ http
         //especificando el nombre del archivo devolviendo en su callback un mensaje de éxito.
         if (req.url.includes('/eliminar')) {
             fs.unlink(nombre, (err, data) => {
-                res.write(`Archivo ${nombre} eliminado con exito`) // 6. Devolver un mensaje declarando el éxito
-                res.end()
+                if (err) {//este if checkea si existe un error
+
+                } else {
+                    res.write(`Archivo ${nombre} eliminado con exito`) // 6. Devolver un mensaje declarando el éxito
+                    res.end()
+
+                } //Terminar la consulta con el método “end” del parámetro res.
             })
         }
     })
